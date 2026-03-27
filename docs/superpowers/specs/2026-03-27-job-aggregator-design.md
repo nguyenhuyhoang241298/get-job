@@ -33,13 +33,15 @@ Server (Next.js Route Handlers)
 
 Each search request scrapes all 5 sources in parallel using `Promise.allSettled`. If one source fails, others still return results. No database — results are scraped realtime.
 
+**Deployment target:** Node.js server (e.g., `next start` on a VPS). Not serverless — Puppeteer requires a full Chromium binary.
+
 ## Data Model
 
 ### JobPost
 
 ```typescript
 interface JobPost {
-  id: string                // hash of source + url for deduplication
+  id: string                // hash of source + url (no cross-source dedup — same job on TopCV and VietnamWorks shows as separate cards)
   title: string             // job title or post title
   company: string | null    // company name (may be null for Facebook posts)
   location: string | null   // work location
@@ -63,7 +65,16 @@ interface FacebookGroup {
 }
 ```
 
-Groups stored in `data/facebook-groups.json` — ships with default groups, user can add/remove via UI which writes back to this file.
+Groups stored in `data/facebook-groups.json` — ships with default groups, user can add/remove via UI which writes back to this file. This works for local/VPS deployment where the filesystem is writable.
+
+### API Response Envelope
+
+```typescript
+interface SearchResponse {
+  results: JobPost[]
+  errors: { source: string; message: string }[]  // failed sources
+}
+```
 
 ## Scraping Strategy
 
@@ -85,7 +96,8 @@ Target sites:
 - Launches headless browser → navigates to each group URL
 - Scrolls to load posts → parses DOM for post content
 - Filters by keyword on the app side (Facebook groups have no public search URL)
-- Requires handling: cookie/login for access, fallback when blocked
+- **Authentication:** Requires Facebook cookies stored in an env variable (`FB_COOKIES`) or a local `data/fb-cookies.json` file. User manually exports cookies from their logged-in browser session (e.g., via browser extension). The scraper injects these cookies before navigating.
+- If cookies are missing or expired, the Facebook scraper is skipped gracefully with an error message
 
 ### Orchestration
 
@@ -99,8 +111,14 @@ const results = await Promise.allSettled([
   scrapeFacebook(keyword, groups),
 ])
 // Collect fulfilled results, skip rejected
-// Sort by postedAt descending
+// Normalize dates → sort by postedAt descending (nulls last)
 ```
+
+**Constraints:**
+- Each scraper has a 15-second timeout via `AbortSignal.timeout(15000)`
+- Max 20 results per source to keep response size manageable
+- Keyword is sanitized (trim, max 100 chars) and URL-encoded before use in search URLs
+- Date normalization: each scraper parses source-specific date formats (relative like "2 ngay truoc", absolute like "27/03/2026") into ISO 8601 strings. Null dates sort last.
 
 ## UI Design
 
@@ -138,6 +156,7 @@ const results = await Promise.allSettled([
 - **Loading:** Skeleton cards (shadcn Skeleton)
 - **Partial error:** Toast notification for failed sources, still show results from others
 - **Empty:** Empty state message when no results
+- **Initial:** Landing state before any search — shows a search prompt message ("Nhap tu khoa de tim viec lam...")
 
 ### Facebook Groups Dialog
 
@@ -160,7 +179,7 @@ const results = await Promise.allSettled([
 export function useJobsSearch(keyword: string) {
   return useQuery({
     queryKey: ["jobs", keyword],
-    queryFn: () => fetch(`/api/jobs/search?keyword=${keyword}`).then(r => r.json()),
+    queryFn: () => fetch(`/api/jobs/search?keyword=${encodeURIComponent(keyword)}`).then(r => r.json()),
     enabled: keyword.length > 0,
     staleTime: 5 * 60 * 1000,  // cache 5 minutes
     retry: 1,
