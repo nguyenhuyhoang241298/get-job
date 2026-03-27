@@ -22,15 +22,19 @@ export async function scrapeTopcv(keyword: string): Promise<JobPost[]> {
     const titleEl = $el.find("h3 a, .title a, a.job-title").first()
     const title = titleEl.text().trim()
     const jobUrl = titleEl.attr("href") || ""
-    const fullUrl = jobUrl.startsWith("http") ? jobUrl : `https://www.topcv.vn${jobUrl}`
+    const fullUrl = jobUrl.startsWith("http")
+      ? jobUrl
+      : `https://www.topcv.vn${jobUrl}`
     if (!title || !jobUrl) return
 
     const company =
-      $el.find(".company-name, a[href*='/cong-ty/']").first().text().trim() || null
+      $el.find(".company-name, a[href*='/cong-ty/']").first().text().trim() ||
+      null
     const salary =
       $el.find(".salary, .job-salary, .muc-luong").first().text().trim() || null
     const location =
-      $el.find(".location, .job-location, .dia-diem").first().text().trim() || null
+      $el.find(".location, .job-location, .dia-diem").first().text().trim() ||
+      null
     const description =
       $el.find(".job-description, .description").first().text().trim() || ""
     const dateText =

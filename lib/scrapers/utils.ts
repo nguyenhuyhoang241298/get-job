@@ -11,7 +11,10 @@ export function sanitizeKeyword(keyword: string): string {
   return keyword.trim().slice(0, 100)
 }
 
-export async function fetchHtml(url: string, signal?: AbortSignal): Promise<string> {
+export async function fetchHtml(
+  url: string,
+  signal?: AbortSignal
+): Promise<string> {
   const res = await fetch(url, {
     headers: { "User-Agent": USER_AGENT },
     signal,
@@ -29,7 +32,7 @@ export function parseVietnameseDate(dateStr: string | null): string | null {
   if (absMatch) {
     const [, day, month, year] = absMatch
     return new Date(
-      `${year}-${month!.padStart(2, "0")}-${day!.padStart(2, "0")}`,
+      `${year}-${month!.padStart(2, "0")}-${day!.padStart(2, "0")}`
     ).toISOString()
   }
   const now = new Date()

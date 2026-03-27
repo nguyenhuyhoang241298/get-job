@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   description: "Tong hop viec lam tu nhieu nguon tuyen dung",
 }
 
-export default function JobsLayout({ children }: { children: React.ReactNode }) {
+export default function JobsLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return children
 }

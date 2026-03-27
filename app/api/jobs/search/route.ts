@@ -4,15 +4,24 @@ import { scrapeVietnamworks } from "@/lib/scrapers/vietnamworks"
 import { scrapeItviec } from "@/lib/scrapers/itviec"
 import { scrapeTopdev } from "@/lib/scrapers/topdev"
 import { scrapeFacebook } from "@/lib/scrapers/facebook"
-import type { JobPost, SearchResponse, FacebookGroup } from "@/lib/scrapers/types"
+import type {
+  JobPost,
+  SearchResponse,
+  FacebookGroup,
+} from "@/lib/scrapers/types"
 import { readFileSync } from "fs"
 import { join } from "path"
 
 function loadGroups(): FacebookGroup[] {
   try {
-    const data = readFileSync(join(process.cwd(), "data", "facebook-groups.json"), "utf-8")
+    const data = readFileSync(
+      join(process.cwd(), "data", "facebook-groups.json"),
+      "utf-8"
+    )
     return JSON.parse(data)
-  } catch { return [] }
+  } catch {
+    return []
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -41,7 +50,10 @@ export async function GET(request: NextRequest) {
     if (result.status === "fulfilled") {
       results.push(...result.value)
     } else {
-      errors.push({ source: scrapers[i]!.name, message: result.reason?.message || "Unknown error" })
+      errors.push({
+        source: scrapers[i]!.name,
+        message: result.reason?.message || "Unknown error",
+      })
     }
   })
 

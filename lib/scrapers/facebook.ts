@@ -30,20 +30,20 @@ function loadCookies(): Cookie[] | null {
 
 export async function scrapeFacebook(
   keyword: string,
-  groups: FacebookGroup[],
+  groups: FacebookGroup[]
 ): Promise<JobPost[]> {
   const cookies = loadCookies()
   if (!cookies)
     throw new Error(
-      "Facebook cookies not configured. Set FB_COOKIES env var or create data/fb-cookies.json",
+      "Facebook cookies not configured. Set FB_COOKIES env var or create data/fb-cookies.json"
     )
   return Promise.race([
     scrapeFacebookInner(keyword, groups, cookies),
     new Promise<never>((_, reject) =>
       setTimeout(
         () => reject(new Error("Facebook scraper timed out")),
-        SCRAPE_TIMEOUT,
-      ),
+        SCRAPE_TIMEOUT
+      )
     ),
   ])
 }
@@ -51,7 +51,7 @@ export async function scrapeFacebook(
 async function scrapeFacebookInner(
   keyword: string,
   groups: FacebookGroup[],
-  cookies: Cookie[],
+  cookies: Cookie[]
 ): Promise<JobPost[]> {
   const sanitized = sanitizeKeyword(keyword).toLowerCase()
   const browser = await puppeteer.launch({ headless: true })
@@ -85,7 +85,7 @@ async function scrapeFacebookInner(
             .forEach((el) => {
               const text = el.textContent || ""
               const linkEl = el.querySelector(
-                'a[href*="/posts/"], a[href*="/permalink/"]',
+                'a[href*="/posts/"], a[href*="/permalink/"]'
               )
               const url = linkEl?.getAttribute("href") || ""
               const timeEl = el.querySelector("abbr, [data-utime], time")

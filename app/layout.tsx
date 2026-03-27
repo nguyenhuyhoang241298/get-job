@@ -22,7 +22,12 @@ export default function RootLayout({
     <html
       lang="vi"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        inter.variable
+      )}
     >
       <body>
         <ThemeProvider>

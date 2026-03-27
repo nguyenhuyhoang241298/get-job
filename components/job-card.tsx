@@ -10,7 +10,11 @@ import { cn } from "@/lib/utils"
 function formatDate(iso: string | null): string {
   if (!iso) return ""
   try {
-    return new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
+    return new Date(iso).toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
   } catch {
     return ""
   }
@@ -21,17 +25,26 @@ export function JobCard({ job }: { job: JobPost }) {
     <Card className="group flex h-full flex-col transition-shadow hover:shadow-lg">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
-          <Badge variant="secondary" className={cn("text-xs", sourceColors[job.source])}>
+          <Badge
+            variant="secondary"
+            className={cn("text-xs", sourceColors[job.source])}
+          >
             {sourceLabels[job.source]}
           </Badge>
           {job.postedAt && (
-            <span className="text-xs text-muted-foreground">{formatDate(job.postedAt)}</span>
+            <span className="text-xs text-muted-foreground">
+              {formatDate(job.postedAt)}
+            </span>
           )}
         </div>
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{job.title}</h3>
+        <h3 className="line-clamp-2 text-sm leading-snug font-semibold">
+          {job.title}
+        </h3>
       </CardHeader>
       <CardContent className="flex-1 space-y-2 pb-3">
-        {job.company && <p className="text-sm text-muted-foreground">{job.company}</p>}
+        {job.company && (
+          <p className="text-sm text-muted-foreground">{job.company}</p>
+        )}
         <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           {job.location && (
             <span className="flex items-center gap-1">
@@ -46,7 +59,11 @@ export function JobCard({ job }: { job: JobPost }) {
             </span>
           )}
         </div>
-        {job.description && <p className="line-clamp-3 text-xs text-muted-foreground">{job.description}</p>}
+        {job.description && (
+          <p className="line-clamp-3 text-xs text-muted-foreground">
+            {job.description}
+          </p>
+        )}
         {job.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {job.tags.slice(0, 5).map((tag) => (

@@ -19,9 +19,7 @@ export async function scrapeItviec(keyword: string): Promise<JobPost[]> {
   $(".job_content, .job-card, [data-search-result]").each((_, el) => {
     if (jobs.length >= MAX_RESULTS_PER_SOURCE) return false
     const $el = $(el)
-    const titleEl = $el
-      .find("h3 a, .job-title a, a[href*='/it-jobs/']")
-      .first()
+    const titleEl = $el.find("h3 a, .job-title a, a[href*='/it-jobs/']").first()
     const title = titleEl.text().trim()
     const jobUrl = titleEl.attr("href") || ""
     const fullUrl = jobUrl.startsWith("http")
@@ -30,17 +28,11 @@ export async function scrapeItviec(keyword: string): Promise<JobPost[]> {
     if (!title || !jobUrl) return
 
     const company =
-      $el
-        .find(".company-name, a[href*='/companies/']")
-        .first()
-        .text()
-        .trim() || null
+      $el.find(".company-name, a[href*='/companies/']").first().text().trim() ||
+      null
     const salary =
-      $el
-        .find(".salary, .job-salary, .text-it-red")
-        .first()
-        .text()
-        .trim() || null
+      $el.find(".salary, .job-salary, .text-it-red").first().text().trim() ||
+      null
     const location =
       $el.find(".city, .location, .job-city").first().text().trim() || null
     const description =

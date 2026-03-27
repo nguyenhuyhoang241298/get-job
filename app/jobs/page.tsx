@@ -32,7 +32,9 @@ export default function JobsPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Tim viec lam</h1>
-          <p className="text-sm text-muted-foreground">Tong hop tu nhieu nguon tuyen dung</p>
+          <p className="text-sm text-muted-foreground">
+            Tong hop tu nhieu nguon tuyen dung
+          </p>
         </div>
         <FacebookGroupsDialog />
       </div>
@@ -54,11 +56,15 @@ export default function JobsPage() {
       ) : isLoading ? (
         <JobsLoadingSkeleton />
       ) : error ? (
-        <div className="py-12 text-center text-destructive">Co loi xay ra. Vui long thu lai.</div>
+        <div className="py-12 text-center text-destructive">
+          Co loi xay ra. Vui long thu lai.
+        </div>
       ) : (
         <>
           {data && (
-            <p className="mb-4 text-sm text-muted-foreground">Tim thay {data.results.length} ket qua</p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Tim thay {data.results.length} ket qua
+            </p>
           )}
           <JobGrid jobs={data?.results ?? []} />
         </>
