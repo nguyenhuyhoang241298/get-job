@@ -100,16 +100,19 @@ function parsePosts($: cheerio.CheerioAPI): RawPost[] {
         postUrl = href.startsWith("http")
           ? href
           : `https://mbasic.facebook.com${href}`
+        return false
       }
     })
 
     let reactionCount = 0
+    let reactionFound = false
     let commentCount = 0
     $el.find("a[href]").each((_, a) => {
       const text = $(a).text().trim()
       const reactionMatch = text.match(/^(\d+)$/)
-      if (reactionMatch && !commentCount) {
+      if (reactionMatch && !reactionFound) {
         reactionCount = parseInt(reactionMatch[1]!, 10)
+        reactionFound = true
       }
       const commentMatch = text.match(
         /(\d+)\s*(comment|bình luận|binh luan)/i
