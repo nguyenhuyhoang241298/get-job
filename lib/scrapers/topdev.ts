@@ -1,70 +1,81 @@
-import * as cheerio from "cheerio"
 import type { JobPost } from "./types"
 import {
-  fetchHtml,
   generateId,
-  parseVietnameseDate,
-  sanitizeKeyword,
   MAX_RESULTS_PER_SOURCE,
+  sanitizeKeyword,
   SCRAPE_TIMEOUT,
 } from "./utils"
 
+interface TopdevJob {
+  title: string
+  slug: string
+  detail_url: string
+  salary: { value: string } | null
+  skills_str: string
+  addresses: { address_region_array: string[] } | null
+  company: { display_name: string } | null
+  published: { datetime: string } | null
+  refreshed: { datetime: string } | null
+}
+
+interface TopdevResponse {
+  data: TopdevJob[]
+  meta: { total: number }
+}
+
 export async function scrapeTopdev(keyword: string): Promise<JobPost[]> {
   const sanitized = sanitizeKeyword(keyword)
-  const slug = sanitized.replace(/\s+/g, "-")
-  const url = `https://topdev.vn/viec-lam-it/${encodeURIComponent(slug)}-kw`
-  const html = await fetchHtml(url, AbortSignal.timeout(SCRAPE_TIMEOUT))
-  const $ = cheerio.load(html)
-  const jobs: JobPost[] = []
-
-  $(".job-item, .job-card, [data-job-slug], .card-job").each((_, el) => {
-    if (jobs.length >= MAX_RESULTS_PER_SOURCE) return false
-    const $el = $(el)
-    const titleEl = $el
-      .find("h3 a, .job-title a, a[href*='/viec-lam/']")
-      .first()
-    const title = titleEl.text().trim()
-    const jobUrl = titleEl.attr("href") || ""
-    const fullUrl = jobUrl.startsWith("http")
-      ? jobUrl
-      : `https://topdev.vn${jobUrl}`
-    if (!title || !jobUrl) return
-
-    const company =
-      $el
-        .find(".company-name, a[href*='/cong-ty/'], .employer-name")
-        .first()
-        .text()
-        .trim() || null
-    const salary =
-      $el.find(".salary, .job-salary").first().text().trim() || null
-    const location =
-      $el.find(".location, .address, .city").first().text().trim() || null
-    const description =
-      $el.find(".job-description, .description").first().text().trim() || ""
-    const dateText =
-      $el.find(".time, .date, .updated-at").first().text().trim() || null
-
-    const tags: string[] = []
-    $el.find(".skill-tag, .tag, .badge, .technology").each((_, tagEl) => {
-      const tag = $(tagEl).text().trim()
-      if (tag) tags.push(tag)
-    })
-
-    jobs.push({
-      id: generateId("topdev", fullUrl),
-      title,
-      company,
-      location,
-      salary,
-      description,
-      url: fullUrl,
-      source: "topdev",
-      postedAt: parseVietnameseDate(dateText),
-      updatedAt: null,
-      tags,
-    })
+  const params = new URLSearchParams({
+    keyword: sanitized,
+    page: "1",
+    "fields[job]":
+      "id,title,salary,slug,company,skills_str,addresses,detail_url,published,refreshed",
+    "fields[company]": "tagline,addresses",
+    locale: "vi_VN",
   })
 
-  return jobs
+  const res = await fetch(
+    `https://api.topdev.vn/td/v2/jobs/search/v2?${params}`,
+    {
+      headers: {
+        Accept: "application/json",
+        Origin: "https://topdev.vn",
+        Referer: "https://topdev.vn/",
+      },
+      signal: AbortSignal.timeout(SCRAPE_TIMEOUT),
+    }
+  )
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} fetching topdev API`)
+  }
+
+  const json: TopdevResponse = await res.json()
+  if (!json.data) return []
+
+  return json.data.slice(0, MAX_RESULTS_PER_SOURCE).map((job) => {
+    const url = job.detail_url || `https://topdev.vn/viec-lam/${job.slug}`
+    return {
+      id: generateId("topdev", url),
+      title: job.title,
+      company: job.company?.display_name || null,
+      location: job.addresses?.address_region_array?.join(", ") || null,
+      salary: job.salary?.value || null,
+      description: "",
+      url,
+      source: "topdev" as const,
+      postedAt: parseTopdevDate(job.published?.datetime),
+      updatedAt: parseTopdevDate(job.refreshed?.datetime),
+      tags: job.skills_str ? job.skills_str.split(", ") : [],
+    }
+  })
+}
+
+function parseTopdevDate(datetime: string | null | undefined): string | null {
+  if (!datetime) return null
+  // Format: "00:00:00 17-03-2026"
+  const match = datetime.match(/(\d{2})-(\d{2})-(\d{4})/)
+  if (!match) return null
+  const [, day, month, year] = match
+  return new Date(`${year}-${month}-${day}`).toISOString()
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
@@ -8,6 +8,7 @@ interface JobSearchBarProps {
   value: string
   onChange: (value: string) => void
   onSearch: () => void
+  onReset: () => void
   isLoading: boolean
 }
 
@@ -15,6 +16,7 @@ export function JobSearchBar({
   value,
   onChange,
   onSearch,
+  onReset,
   isLoading,
 }: JobSearchBarProps) {
   return (
@@ -34,6 +36,12 @@ export function JobSearchBar({
       <Button onClick={onSearch} disabled={isLoading || !value.trim()}>
         {isLoading ? "Dang tim..." : "Tim kiem"}
       </Button>
+      {value && (
+        <Button variant="outline" onClick={onReset} disabled={isLoading}>
+          <X className="h-4 w-4" />
+          Xoa
+        </Button>
+      )}
     </div>
   )
 }

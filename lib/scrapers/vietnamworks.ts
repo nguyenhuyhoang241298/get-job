@@ -1,67 +1,51 @@
-import * as cheerio from "cheerio"
 import type { JobPost } from "./types"
-import {
-  fetchHtml,
-  generateId,
-  parseVietnameseDate,
-  sanitizeKeyword,
-  MAX_RESULTS_PER_SOURCE,
-  SCRAPE_TIMEOUT,
-} from "./utils"
+import { generateId, MAX_RESULTS_PER_SOURCE, sanitizeKeyword, SCRAPE_TIMEOUT } from "./utils"
+
+interface VietnamworksJob {
+  jobId: number
+  jobTitle: string
+  jobUrl: string
+  companyName: string
+  prettySalary: string
+  locations: string[]
+  skills: { skillId: number; skillName: string }[]
+  approvedOn: string | null
+  lastUpdatedOn: string | null
+  summary: string
+}
+
+interface VietnamworksResponse {
+  meta: { code: number }
+  data: VietnamworksJob[]
+}
 
 export async function scrapeVietnamworks(keyword: string): Promise<JobPost[]> {
   const sanitized = sanitizeKeyword(keyword)
-  const url = `https://www.vietnamworks.com/tim-viec-lam/tat-ca-viec-lam?q=${encodeURIComponent(sanitized)}`
-  const html = await fetchHtml(url, AbortSignal.timeout(SCRAPE_TIMEOUT))
-  const $ = cheerio.load(html)
-  const jobs: JobPost[] = []
-
-  $("[class*='JobCard'], .job-item, article").each((_, el) => {
-    if (jobs.length >= MAX_RESULTS_PER_SOURCE) return false
-    const $el = $(el)
-    const titleEl = $el.find("h3 a, h2 a, a[href*='/viec-lam/']").first()
-    const title = titleEl.text().trim()
-    const jobUrl = titleEl.attr("href") || ""
-    const fullUrl = jobUrl.startsWith("http")
-      ? jobUrl
-      : `https://www.vietnamworks.com${jobUrl}`
-    if (!title || !jobUrl) return
-
-    const company =
-      $el
-        .find("a[href*='/nha-tuyen-dung/'], .company-name")
-        .first()
-        .text()
-        .trim() || null
-    const salary =
-      $el.find("[class*='salary'], .salary").first().text().trim() || null
-    const location =
-      $el.find("[class*='location'], .location").first().text().trim() || null
-    const description =
-      $el.find(".job-description, .description").first().text().trim() || ""
-    const dateText =
-      $el.find(".time, .date, .updated-at").first().text().trim() || null
-
-    const tags: string[] = []
-    $el.find(".tag, .label, .skill-tag").each((_, tagEl) => {
-      const tag = $(tagEl).text().trim()
-      if (tag) tags.push(tag)
-    })
-
-    jobs.push({
-      id: generateId("vietnamworks", fullUrl),
-      title,
-      company,
-      location,
-      salary,
-      description,
-      url: fullUrl,
-      source: "vietnamworks",
-      postedAt: parseVietnameseDate(dateText),
-      updatedAt: null,
-      tags,
-    })
+  const res = await fetch("https://ms.vietnamworks.com/job-search/v1.0/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query: sanitized, offset: 0, limit: MAX_RESULTS_PER_SOURCE }),
+    signal: AbortSignal.timeout(SCRAPE_TIMEOUT),
   })
 
-  return jobs
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} fetching vietnamworks API`)
+  }
+
+  const json: VietnamworksResponse = await res.json()
+  if (json.meta.code !== 200 || !json.data) return []
+
+  return json.data.slice(0, MAX_RESULTS_PER_SOURCE).map((job) => ({
+    id: generateId("vietnamworks", job.jobUrl),
+    title: job.jobTitle,
+    company: job.companyName || null,
+    location: job.locations?.join(", ") || null,
+    salary: job.prettySalary || null,
+    description: job.summary || "",
+    url: job.jobUrl,
+    source: "vietnamworks" as const,
+    postedAt: job.approvedOn ? new Date(job.approvedOn).toISOString() : null,
+    updatedAt: job.lastUpdatedOn ? new Date(job.lastUpdatedOn).toISOString() : null,
+    tags: job.skills?.map((s) => s.skillName) || [],
+  }))
 }

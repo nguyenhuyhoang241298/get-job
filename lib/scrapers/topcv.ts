@@ -38,7 +38,7 @@ export async function scrapeTopcv(keyword: string): Promise<JobPost[]> {
     const description =
       $el.find(".job-description, .description").first().text().trim() || ""
     const dateText =
-      $el.find(".time, .date, .updated-at").first().text().trim() || null
+      $el.find("label.label-update").first().text().trim() || null
 
     const tags: string[] = []
     $el.find(".tag, .label, .skill-tag").each((_, tagEl) => {

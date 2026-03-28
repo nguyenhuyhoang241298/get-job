@@ -1,11 +1,11 @@
 "use client"
 
-import { ExternalLink, MapPin, Banknote } from "lucide-react"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import type { JobPost } from "@/lib/scrapers/types"
 import { sourceColors, sourceLabels } from "@/lib/source-colors"
 import { cn } from "@/lib/utils"
+import { Banknote, ExternalLink, MapPin } from "lucide-react"
 
 function formatDate(iso: string | null): string {
   if (!iso) return ""
@@ -53,7 +53,7 @@ export function JobCard({ job }: { job: JobPost }) {
             </span>
           )}
           {job.salary && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
               <Banknote className="h-3 w-3" />
               {job.salary}
             </span>
@@ -66,15 +66,19 @@ export function JobCard({ job }: { job: JobPost }) {
         )}
         {job.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {job.tags.slice(0, 5).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-[10px]">
+            {job.tags.slice(0, 5).map((tag, i) => (
+              <Badge
+                key={`${tag}-${i}`}
+                variant="outline"
+                className="text-[10px]"
+              >
                 {tag}
               </Badge>
             ))}
           </div>
         )}
       </CardContent>
-      <CardFooter className="pt-0">
+      <CardFooter>
         <a
           href={job.url}
           target="_blank"

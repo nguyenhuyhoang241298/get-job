@@ -36,7 +36,18 @@ export function parseVietnameseDate(dateStr: string | null): string | null {
     ).toISOString()
   }
   const now = new Date()
-  const relMatch = cleaned.match(/(\d+)\s*(giay|phut|gio|ngay|tuan|thang|nam)/)
+  // Normalize Vietnamese diacritics to ASCII equivalents for matching
+  const normalized = cleaned
+    .replace(/[áàảãạăắằẳẵặâấầẩẫậ]/g, "a")
+    .replace(/[éèẻẽẹêếềểễệ]/g, "e")
+    .replace(/[íìỉĩị]/g, "i")
+    .replace(/[óòỏõọôốồổỗộơớờởỡợ]/g, "o")
+    .replace(/[úùủũụưứừửữự]/g, "u")
+    .replace(/[ýỳỷỹỵ]/g, "y")
+    .replace(/đ/g, "d")
+  const relMatch = normalized.match(
+    /(\d+)\s*(giay|phut|gio|ngay|tuan|thang|nam)/
+  )
   if (relMatch) {
     const amount = parseInt(relMatch[1]!, 10)
     const unit = relMatch[2]!
@@ -60,3 +71,32 @@ export function parseVietnameseDate(dateStr: string | null): string | null {
 
 export const MAX_RESULTS_PER_SOURCE = 20
 export const SCRAPE_TIMEOUT = 15000
+
+export function parseRelativeDate(text: string | null): string | null {
+  if (!text) return null
+  const cleaned = text.trim().toLowerCase()
+  const now = new Date()
+
+  // "Posted 2 days ago", "3 hours ago", etc.
+  const match = cleaned.match(
+    /(\d+)\s*(second|minute|hour|day|week|month|year)s?\s*ago/
+  )
+  if (match) {
+    const amount = parseInt(match[1]!, 10)
+    const unit = match[2]!
+    const offsets: Record<string, number> = {
+      second: 1000,
+      minute: 60 * 1000,
+      hour: 60 * 60 * 1000,
+      day: 24 * 60 * 60 * 1000,
+      week: 7 * 24 * 60 * 60 * 1000,
+      month: 30 * 24 * 60 * 60 * 1000,
+      year: 365 * 24 * 60 * 60 * 1000,
+    }
+    if (offsets[unit]) {
+      return new Date(now.getTime() - amount * offsets[unit]).toISOString()
+    }
+  }
+
+  return parseVietnameseDate(cleaned)
+}
