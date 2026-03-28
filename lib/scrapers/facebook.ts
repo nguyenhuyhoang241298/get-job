@@ -27,7 +27,7 @@ function getMbasicUrl(groupUrl: string): string {
 async function fetchMbasicHtml(
   url: string,
   cookies: string
-): Promise<{ html: string; redirected: boolean; finalUrl: string }> {
+): Promise<{ html: string; finalUrl: string }> {
   const res = await fetch(url, {
     headers: {
       "User-Agent": MOBILE_USER_AGENT,
@@ -44,7 +44,6 @@ async function fetchMbasicHtml(
   }
   return {
     html: await res.text(),
-    redirected: res.redirected,
     finalUrl: res.url,
   }
 }
@@ -143,7 +142,7 @@ function extractPaginationUrl($: cheerio.CheerioAPI): string | null {
 }
 
 function delay(ms: number): Promise<void> {
-  const jitter = Math.floor(Math.random() * 2000)
+  const jitter = Math.floor(Math.random() * Math.min(2000, ms))
   return new Promise((resolve) => setTimeout(resolve, ms + jitter))
 }
 
@@ -201,13 +200,13 @@ async function scrapeGroup(
         id: generateId("facebook", postUrl || `${group.url}#${posts.length}`),
         title: content
           ? content.slice(0, 150).trim()
-          : "[Bai dang co anh/video]",
+          : "[Bài đăng có ảnh/video]",
         company: raw.author || null,
         location: group.name,
         salary: null,
         description: content
           ? content.slice(0, 500).trim()
-          : "[Bai dang co anh/video] — Xem tren Facebook",
+          : "[Bài đăng có ảnh/video] — Xem trên Facebook",
         url: postUrl || group.url,
         source: "facebook",
         postedAt: parseRelativeDate(raw.timestamp),
