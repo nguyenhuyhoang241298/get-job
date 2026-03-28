@@ -1,28 +1,12 @@
-import { NextRequest, NextResponse } from "next/server"
-import { scrapeTopcv } from "@/lib/scrapers/topcv"
-import { scrapeVietnamworks } from "@/lib/scrapers/vietnamworks"
+import { scrapeCareerViet } from "@/lib/scrapers/careerviet"
 import { scrapeItviec } from "@/lib/scrapers/itviec"
+import { scrapeJobsgo } from "@/lib/scrapers/jobsgo"
+import { scrapeTopcv } from "@/lib/scrapers/topcv"
 import { scrapeTopdev } from "@/lib/scrapers/topdev"
-import { scrapeFacebook } from "@/lib/scrapers/facebook"
-import type {
-  JobPost,
-  SearchResponse,
-  FacebookGroup,
-} from "@/lib/scrapers/types"
-import { readFileSync } from "fs"
-import { join } from "path"
-
-function loadGroups(): FacebookGroup[] {
-  try {
-    const data = readFileSync(
-      join(process.cwd(), "data", "facebook-groups.json"),
-      "utf-8"
-    )
-    return JSON.parse(data)
-  } catch {
-    return []
-  }
-}
+import type { JobPost, SearchResponse } from "@/lib/scrapers/types"
+import { scrapeViecoi } from "@/lib/scrapers/viecoi"
+import { scrapeVietnamworks } from "@/lib/scrapers/vietnamworks"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
   const keyword = request.nextUrl.searchParams.get("keyword")?.trim() || ""
@@ -33,13 +17,14 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  const groups = loadGroups()
   const scrapers = [
     { name: "topcv", fn: () => scrapeTopcv(keyword) },
     { name: "vietnamworks", fn: () => scrapeVietnamworks(keyword) },
     { name: "itviec", fn: () => scrapeItviec(keyword) },
     { name: "topdev", fn: () => scrapeTopdev(keyword) },
-    { name: "facebook", fn: () => scrapeFacebook(keyword, groups) },
+    { name: "jobsgo", fn: () => scrapeJobsgo(keyword) },
+    { name: "viecoi", fn: () => scrapeViecoi(keyword) },
+    { name: "careerviet", fn: () => scrapeCareerViet(keyword) },
   ]
 
   const settled = await Promise.allSettled(scrapers.map((s) => s.fn()))
