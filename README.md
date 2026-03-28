@@ -78,11 +78,11 @@ SCRAPE_DELAY_MS=3000
 
 ### Giai thich tung bien
 
-| Bien | Bat buoc? | Gia tri mac dinh | Mo ta |
-|------|-----------|-------------------|-------|
-| `FB_COOKIES` | Co (neu dung Facebook) | — | Chuoi cookies xac thuc Facebook. Gom 4 gia tri: `c_user`, `xs`, `fr`, `datr`, ngan cach boi dau `;` |
-| `SCRAPE_MAX_PAGES` | Khong | `2` | So lan cuon trang de tai them bai viet trong moi nhom Facebook |
-| `SCRAPE_DELAY_MS` | Khong | `3000` | Thoi gian nghi giua cac lan cuon (ms). Tranh dat qua thap de khong bi chan |
+| Bien               | Bat buoc?              | Gia tri mac dinh | Mo ta                                                                                               |
+| ------------------ | ---------------------- | ---------------- | --------------------------------------------------------------------------------------------------- |
+| `FB_COOKIES`       | Co (neu dung Facebook) | —                | Chuoi cookies xac thuc Facebook. Gom 4 gia tri: `c_user`, `xs`, `fr`, `datr`, ngan cach boi dau `;` |
+| `SCRAPE_MAX_PAGES` | Khong                  | `2`              | So lan cuon trang de tai them bai viet trong moi nhom Facebook                                      |
+| `SCRAPE_DELAY_MS`  | Khong                  | `3000`           | Thoi gian nghi giua cac lan cuon (ms). Tranh dat qua thap de khong bi chan                          |
 
 ### Huong dan lay Facebook Cookies chi tiet
 
@@ -92,12 +92,12 @@ SCRAPE_DELAY_MS=3000
 4. O panel ben trai, mo rong muc **Cookies** va chon `https://www.facebook.com`
 5. Tim cac cookie sau trong bang:
 
-   | Cookie | Vi du gia tri |
-   |--------|--------------|
-   | `c_user` | `100009137895923` |
-   | `xs` | `28%3ADkcHJ1NAvqCXZQ%3A2%3A...` |
-   | `fr` | `13s6ueYoeHdDIB4Ln.AWcan...` |
-   | `datr` | `zqxFaHqG3DDcsybWnwDf2PPn` |
+   | Cookie   | Vi du gia tri                  |
+   | -------- | ------------------------------ |
+   | `c_user` | `100009155735923`              |
+   | `xs`     | `28%3ADkfJ1NAvqCXZQ%3A2%3A...` |
+   | `fr`     | `13s6ueYoeHkkDIB4Ln.AWcan...`  |
+   | `datr`   | `zqxFaHqG3DDcsgbWnwDf2PPn`     |
 
 6. Ghep lai theo dinh dang:
    ```
@@ -109,15 +109,15 @@ SCRAPE_DELAY_MS=3000
 
 ## Cac lenh thuong dung
 
-| Lenh | Mo ta |
-|------|-------|
-| `pnpm dev` | Chay dev server (Turbopack) |
-| `pnpm build` | Build phien ban production |
-| `pnpm start` | Chay production server |
-| `pnpm lint` | Kiem tra loi voi ESLint |
-| `pnpm format` | Format code voi Prettier |
-| `pnpm typecheck` | Kiem tra kieu TypeScript |
-| `npx shadcn@latest add <ten>` | Them component shadcn/ui |
+| Lenh                          | Mo ta                       |
+| ----------------------------- | --------------------------- |
+| `pnpm dev`                    | Chay dev server (Turbopack) |
+| `pnpm build`                  | Build phien ban production  |
+| `pnpm start`                  | Chay production server      |
+| `pnpm lint`                   | Kiem tra loi voi ESLint     |
+| `pnpm format`                 | Format code voi Prettier    |
+| `pnpm typecheck`              | Kiem tra kieu TypeScript    |
+| `npx shadcn@latest add <ten>` | Them component shadcn/ui    |
 
 ## Cau truc du an
 
@@ -158,13 +158,13 @@ get-job/
 
 ## API Endpoints
 
-| Endpoint | Method | Mo ta |
-|----------|--------|-------|
-| `/api/jobs/search?keyword=...` | GET | Tim kiem viec lam theo tu khoa |
-| `/api/groups` | GET | Lay danh sach nhom Facebook |
-| `/api/groups` | POST | Them nhom Facebook moi |
-| `/api/groups` | DELETE | Xoa nhom Facebook |
-| `/api/facebook/posts` | GET | Thu thap bai dang tu tat ca nhom |
+| Endpoint                       | Method | Mo ta                            |
+| ------------------------------ | ------ | -------------------------------- |
+| `/api/jobs/search?keyword=...` | GET    | Tim kiem viec lam theo tu khoa   |
+| `/api/groups`                  | GET    | Lay danh sach nhom Facebook      |
+| `/api/groups`                  | POST   | Them nhom Facebook moi           |
+| `/api/groups`                  | DELETE | Xoa nhom Facebook                |
+| `/api/facebook/posts`          | GET    | Thu thap bai dang tu tat ca nhom |
 
 ## Cong nghe su dung
 
