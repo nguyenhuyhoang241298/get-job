@@ -1,10 +1,6 @@
 import { createBrowserContext } from "./browser"
-import type { JobPost, FacebookGroup } from "./types"
-import {
-  generateId,
-  sanitizeKeyword,
-  MAX_RESULTS_PER_SOURCE,
-} from "./utils"
+import type { FacebookPost, FacebookGroup } from "./types"
+import { generateId } from "./utils"
 
 const SCROLL_DELAY_MS = parseInt(process.env.SCRAPE_DELAY_MS || "3000", 10)
 const SCROLL_COUNT = parseInt(process.env.SCRAPE_MAX_PAGES || "2", 10)
@@ -34,7 +30,7 @@ interface RawPost {
 async function scrapeGroup(
   group: FacebookGroup,
   cookieStr: string
-): Promise<JobPost[]> {
+): Promise<FacebookPost[]> {
   const cookies = parseCookieString(cookieStr)
   const context = await createBrowserContext()
 
@@ -111,37 +107,25 @@ async function scrapeGroup(
       )
     }
 
-    return rawPosts.map((raw, i) => {
-      const tags: string[] = [raw.groupName]
-      if (raw.reactions) tags.push(`👍 ${raw.reactions}`)
-
-      return {
-        id: generateId("facebook", `${raw.groupUrl}#${i}#${raw.content.slice(0, 50)}`),
-        title: raw.content
-          ? raw.content.slice(0, 150).trim()
-          : "[Bài đăng có ảnh/video]",
-        company: raw.author || null,
-        location: raw.groupName,
-        salary: null,
-        description: raw.content
-          ? raw.content.slice(0, 500).trim()
-          : "[Bài đăng có ảnh/video] — Xem trên Facebook",
-        url: raw.groupUrl,
-        source: "facebook" as const,
-        postedAt: null,
-        updatedAt: null,
-        tags,
-      }
-    })
+    return rawPosts.map((raw, i) => ({
+      id: generateId("facebook", `${raw.groupUrl}#${i}#${raw.content.slice(0, 50)}`),
+      author: raw.author || null,
+      content: raw.content || "[Bài đăng có ảnh/video]",
+      url: raw.groupUrl,
+      groupName: raw.groupName,
+      groupUrl: raw.groupUrl,
+      reactions: raw.reactions || null,
+      mediaUrls: [],
+      postedAt: null,
+    }))
   } finally {
     await context.close()
   }
 }
 
-export async function scrapeFacebook(
-  keyword: string,
+export async function scrapeFacebookPosts(
   groups: FacebookGroup[]
-): Promise<JobPost[]> {
+): Promise<FacebookPost[]> {
   const cookieStr = process.env.FB_COOKIES?.trim()
   if (!cookieStr) {
     console.warn("facebook: FB_COOKIES not configured, skipping")
@@ -152,11 +136,7 @@ export async function scrapeFacebook(
     return []
   }
 
-  const sanitized = sanitizeKeyword(keyword).toLowerCase()
-
-  // Scrape groups sequentially to avoid opening too many browser contexts
-  const allPosts: JobPost[] = []
-  const errors: string[] = []
+  const allPosts: FacebookPost[] = []
 
   for (const group of groups) {
     try {
@@ -165,21 +145,11 @@ export async function scrapeFacebook(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
       console.error(`facebook: failed to scrape ${group.name}:`, message)
-      errors.push(`${group.name}: ${message}`)
-
-      // If cookies expired, stop scraping other groups
       if (message.includes("hết hạn")) {
         throw new Error("Facebook cookies hết hạn, cần lấy lại")
       }
     }
   }
 
-  // Filter by keyword match
-  const filtered = allPosts.filter(
-    (post) =>
-      post.title.toLowerCase().includes(sanitized) ||
-      post.description.toLowerCase().includes(sanitized)
-  )
-
-  return filtered.slice(0, MAX_RESULTS_PER_SOURCE)
+  return allPosts
 }
