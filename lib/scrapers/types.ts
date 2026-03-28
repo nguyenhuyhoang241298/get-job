@@ -3,7 +3,9 @@ export type JobSource =
   | "vietnamworks"
   | "itviec"
   | "topdev"
-  | "facebook"
+  | "jobsgo"
+  | "viecoi"
+  | "careerviet"
 
 export interface JobPost {
   id: string
@@ -23,6 +25,23 @@ export interface FacebookGroup {
   id: string
   name: string
   url: string
+}
+
+export interface FacebookPost {
+  id: string
+  author: string | null
+  content: string
+  url: string
+  groupName: string
+  groupUrl: string
+  reactions: string | null
+  mediaUrls: string[]
+  postedAt: string | null
+}
+
+export interface FacebookPostsResponse {
+  results: FacebookPost[]
+  errors: { source: string; message: string }[]
 }
 
 export interface SearchResponse {
